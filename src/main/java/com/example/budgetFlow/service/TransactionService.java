@@ -19,4 +19,6 @@ public interface TransactionService {
     List<Transaction> getByUserIdAndCategoryId(Long userId, Long categoryId);
 
     List<Transaction> getByUserIdAndType(Long userId, String type);
+
+
 }

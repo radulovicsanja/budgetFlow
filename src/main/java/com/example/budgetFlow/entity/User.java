@@ -1,5 +1,6 @@
 package com.example.budgetFlow.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class User {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,8 +34,10 @@ public class User {
 
     @NotBlank(message = "Lozinka je obavezna")
     @Size(min = 6, max = 255, message = "Lozinka mora biti između 6 i 255 karaktera")
+    @JsonIgnore
     @Column(nullable = false, length = 255)
     private String password;
+
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

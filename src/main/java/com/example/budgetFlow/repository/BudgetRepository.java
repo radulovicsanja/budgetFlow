@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
+
     // Jedan budžet po korisniku za određeni mjesec
     Optional<Budget> findByUserIdAndMonth(Long userId, String month);
 
@@ -17,5 +18,4 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
 
     // Provjera da li već postoji budžet za mjesec
     boolean existsByUserIdAndMonth(Long userId, String month);
-
 }

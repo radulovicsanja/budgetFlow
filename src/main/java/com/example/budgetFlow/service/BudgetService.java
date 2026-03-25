@@ -1,10 +1,16 @@
 package com.example.budgetFlow.service;
 
 import com.example.budgetFlow.entity.Budget;
+import com.example.budgetFlow.entity.BudgetCategory;
+import com.example.budgetFlow.entity.Transaction;
+
 
 import java.util.List;
 
 public interface BudgetService {
+
+
+        Budget getById(Long id); // za BudgetCategoryContgroller
 
     Budget createBudget(Budget budget);
 
@@ -14,7 +20,13 @@ public interface BudgetService {
 
     List<Budget> getAllUserBudgets(Long userId);
 
+
     Budget updateBudget(Long id, Budget updatedBudget);
 
-    void deleteBudget(Long id);
+    // BudgetCategory specifične metode
+    BudgetCategory addOrUpdateCategoryManual(Long budgetId, Long categoryId, Double percentage, Double allocatedAmount);
+    List<BudgetCategory> applySuggestedBudget(Long budgetId);
+
+
+    void updateBudgetAfterTransaction(Transaction savedTransaction);
 }
