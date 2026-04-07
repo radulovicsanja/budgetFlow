@@ -11,6 +11,10 @@ import com.example.budgetFlow.service.BudgetCategoryService;
 import com.example.budgetFlow.service.BudgetService;
 import com.example.budgetFlow.service.CategoryService;
 import com.example.budgetFlow.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +25,7 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Tag(name = "Budgets", description = "Budget creation and management")
 @RestController
 @RequestMapping("/api/budgets")
 @RequiredArgsConstructor
@@ -32,6 +37,8 @@ public class BudgetController {
     private final BudgetCategoryService budgetCategoryService;
 
     // CREATE - kreiraj novi budžet
+    @Operation(summary = "Create budget", description = "Create a new monthly budget for a user")
+    @ApiResponse(responseCode = "200", description = "Budget created")
     @PostMapping
     public ResponseEntity<Budget> createBudget(@RequestBody @Valid BudgetDTO dto) {
         User user = userService.getById(dto.getUserId());
@@ -47,23 +54,30 @@ public class BudgetController {
     }
 
     // GET ALL BY USER
+    @Operation(summary = "Get budgets by user", description = "Retrieve all budgets for a specific user")
+    @ApiResponse(responseCode = "200", description = "List of budgets")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Budget>> getBudgetsByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<Budget>> getBudgetsByUser(@Parameter(description = "User ID") @PathVariable Long userId) {
         return ResponseEntity.ok(budgetService.getAllUserBudgets(userId));
     }
 
     // GET BY ID
+    @Operation(summary = "Get budget by ID")
+    @ApiResponse(responseCode = "200", description = "Budget found")
+    @ApiResponse(responseCode = "404", description = "Budget not found")
     @GetMapping("/{id}")
-    public ResponseEntity<Budget> getBudgetById(@PathVariable Long id) {
+    public ResponseEntity<Budget> getBudgetById(@Parameter(description = "Budget ID") @PathVariable Long id) {
         Budget budget = budgetService.getBudgetById(id);
         if (budget == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(budget);
     }
 
     // UPDATE
+    @Operation(summary = "Update budget")
+    @ApiResponse(responseCode = "200", description = "Budget updated")
     @PutMapping("/{id}")
     public ResponseEntity<Budget> updateBudget(
-            @PathVariable Long id,
+            @Parameter(description = "Budget ID") @PathVariable Long id,
             @RequestBody @Valid BudgetDTO dto) {
 
         User user = userService.getById(dto.getUserId());
@@ -81,9 +95,12 @@ public class BudgetController {
 
 
     // CUSTOM (USER DEFINES)
+    @Operation(summary = "Add/update category allocation", description = "Assign a category to a budget with a custom percentage or amount")
+    @ApiResponse(responseCode = "200", description = "Category allocation saved")
+    @ApiResponse(responseCode = "400", description = "Budget or category not found, or missing amount/percentage")
     @PutMapping("/{id}/categories")
     public ResponseEntity<BudgetCategory> addOrUpdateCategory(
-            @PathVariable Long id,
+            @Parameter(description = "Budget ID") @PathVariable Long id,
             @RequestBody BudgetCategoryDTO dto) {
 
         Budget budget = budgetService.getById(id);
@@ -122,8 +139,11 @@ public class BudgetController {
     }
 
     // SUGGESTED (50/30/20 AUTOMATSKI)
+    @Operation(summary = "Apply 50/30/20 distribution", description = "Automatically allocate budget using the 50% essential / 30% optional / 20% savings rule")
+    @ApiResponse(responseCode = "200", description = "Budget categories allocated")
+    @ApiResponse(responseCode = "400", description = "Budget not found")
     @PostMapping("/{id}/suggested")
-    public ResponseEntity<List<BudgetCategory>> applySuggested(@PathVariable Long id) {
+    public ResponseEntity<List<BudgetCategory>> applySuggested(@Parameter(description = "Budget ID") @PathVariable Long id) {
 
         Budget budget = budgetService.getById(id);
         if (budget == null) return ResponseEntity.badRequest().build();

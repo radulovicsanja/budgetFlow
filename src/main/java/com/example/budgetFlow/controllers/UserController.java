@@ -2,6 +2,11 @@ package com.example.budgetFlow.controllers;
 
 import com.example.budgetFlow.entity.User;
 import com.example.budgetFlow.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +18,7 @@ import com.example.budgetFlow.security.JwtUtils;
 import java.util.Map;
 
 
+@Tag(name = "Users", description = "User registration and profile management")
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -23,6 +29,12 @@ public class UserController {
     private final JwtUtils jwtUtils;
 
     // Crud
+    @Operation(summary = "Register", description = "Register a new user account, returns JWT token")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "User registered successfully"),
+        @ApiResponse(responseCode = "400", description = "Validation error or email already taken")
+    })
+    @SecurityRequirements
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody @Valid LoginRequest request) {
 
@@ -48,12 +60,16 @@ public class UserController {
 
 
     // cRud
+    @Operation(summary = "Get current user", description = "Returns the currently authenticated user's profile")
+    @ApiResponse(responseCode = "200", description = "User profile returned")
     @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser() {
         return ResponseEntity.ok(userService.getCurrentUser());
     }
 
     // crUd
+    @Operation(summary = "Update current user", description = "Update the authenticated user's username, email, or password")
+    @ApiResponse(responseCode = "200", description = "User updated successfully")
     @PutMapping("/me")
     public ResponseEntity<User> updateUser(@RequestBody User updatedUser) {
 
@@ -75,6 +91,8 @@ public class UserController {
     }
 
     // cruD
+    @Operation(summary = "Delete account", description = "Permanently delete the authenticated user's account")
+    @ApiResponse(responseCode = "200", description = "Account deleted successfully")
     @DeleteMapping("/me")
     public ResponseEntity<String> deleteAccount() {
 
