@@ -7,6 +7,10 @@ import com.example.budgetFlow.entity.Category;
 import com.example.budgetFlow.service.BudgetCategoryService;
 import com.example.budgetFlow.service.BudgetService;
 import com.example.budgetFlow.service.CategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 
+@Tag(name = "Budget Categories", description = "Manage category allocations within a budget")
 @RestController
 @RequestMapping("/api/budget-categories")
 @RequiredArgsConstructor
@@ -24,6 +29,8 @@ public class BudgetCategoryController {
     private final CategoryService categoryService;
 
     // CREATE
+    @Operation(summary = "Create budget-category allocation")
+    @ApiResponse(responseCode = "200", description = "Allocation created")
     @PostMapping
     public ResponseEntity<BudgetCategory> create(@RequestBody @Valid BudgetCategoryDTO dto) {
 
@@ -40,8 +47,11 @@ public class BudgetCategoryController {
     }
 
     // GET BY ID
+    @Operation(summary = "Get budget-category by ID")
+    @ApiResponse(responseCode = "200", description = "Found")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @GetMapping("/{id}")
-    public ResponseEntity<BudgetCategory> getById(@PathVariable Long id) {
+    public ResponseEntity<BudgetCategory> getById(@Parameter(description = "BudgetCategory ID") @PathVariable Long id) {
         BudgetCategory bc = budgetCategoryService.getById(id);
         if (bc == null) {
             return ResponseEntity.notFound().build();
@@ -50,15 +60,20 @@ public class BudgetCategoryController {
     }
 
     // GET BY BUDGET
+    @Operation(summary = "Get all category allocations for a budget")
+    @ApiResponse(responseCode = "200", description = "List of allocations")
     @GetMapping("/budget/{budgetId}")
-    public ResponseEntity<List<BudgetCategory>> getByBudget(@PathVariable Long budgetId) {
+    public ResponseEntity<List<BudgetCategory>> getByBudget(@Parameter(description = "Budget ID") @PathVariable Long budgetId) {
         List<BudgetCategory> list = budgetCategoryService.getByBudgetId(budgetId);
         return ResponseEntity.ok(list);
     }
 
     // UPDATE
+    @Operation(summary = "Update budget-category allocation")
+    @ApiResponse(responseCode = "200", description = "Allocation updated")
+    @ApiResponse(responseCode = "404", description = "Not found")
     @PutMapping("/{id}")
-    public ResponseEntity<BudgetCategory> update(@PathVariable Long id,
+    public ResponseEntity<BudgetCategory> update(@Parameter(description = "BudgetCategory ID") @PathVariable Long id,
                                                  @RequestBody @Valid BudgetCategoryDTO dto) {
         BudgetCategory existing = budgetCategoryService.getById(id);
         if (existing == null) {
@@ -74,8 +89,10 @@ public class BudgetCategoryController {
     }
 
     // DELETE
+    @Operation(summary = "Delete budget-category allocation")
+    @ApiResponse(responseCode = "200", description = "Deleted successfully")
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ResponseEntity<String> delete(@Parameter(description = "BudgetCategory ID") @PathVariable Long id) {
         budgetCategoryService.delete(id);
         return ResponseEntity.ok("BudgetCategory deleted successfully");
     }
