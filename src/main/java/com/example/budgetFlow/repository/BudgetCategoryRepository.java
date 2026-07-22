@@ -9,9 +9,11 @@ import java.util.List;
 @Repository
 public interface BudgetCategoryRepository extends JpaRepository<BudgetCategory, Long> {
 
-    // Pronalaženje svih kategorija po budžetu
     List<BudgetCategory> findByBudgetId(Long budgetId);
 
-    // Opcionalno: pronalaženje po budžetu i kategoriji
     BudgetCategory findByBudgetIdAndCategoryId(Long budgetId, Long categoryId);
+
+    void deleteByBudget_User_Id(Long userId);
+
+    void deleteByCategory_User_Id(Long userId);
 }

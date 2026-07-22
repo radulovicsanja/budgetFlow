@@ -1,5 +1,6 @@
 package com.example.budgetFlow.DTO;
 
+import com.example.budgetFlow.entity.TransactionType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -8,25 +9,26 @@ import java.time.LocalDate;
 
 public class TransactionDTO {
 
-    @NotNull
-    @Positive
+    @NotNull(message = "Iznos je obavezan")
+    @Positive(message = "Iznos mora biti veći od nule")
     private BigDecimal amount;
 
-    @NotNull
-    private String type; // INCOME ili EXPENSE
+    @NotNull(message = "Tip transakcije je obavezan")
+    private TransactionType type;
 
     private String description;
 
-    @NotNull
+    @NotNull(message = "Datum je obavezan")
     private LocalDate date;
 
-    @NotNull
+    /** Ignoriše se — vlasnik se uzima iz JWT-a. */
     private Long userId;
 
-    @NotNull
+    /** Obavezno samo za EXPENSE. Za INCOME može biti null. */
     private Long categoryId;
 
-    // GETTERS & SETTERS
+    /** true = uzmi shortage iz neraspoređenog. */
+    private Boolean confirmFromUnallocated = false;
 
     public BigDecimal getAmount() {
         return amount;
@@ -36,11 +38,11 @@ public class TransactionDTO {
         this.amount = amount;
     }
 
-    public String getType() {
+    public TransactionType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(TransactionType type) {
         this.type = type;
     }
 
@@ -74,5 +76,13 @@ public class TransactionDTO {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public Boolean getConfirmFromUnallocated() {
+        return confirmFromUnallocated;
+    }
+
+    public void setConfirmFromUnallocated(Boolean confirmFromUnallocated) {
+        this.confirmFromUnallocated = confirmFromUnallocated;
     }
 }

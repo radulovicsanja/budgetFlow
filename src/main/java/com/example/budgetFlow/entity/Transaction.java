@@ -1,11 +1,14 @@
 package com.example.budgetFlow.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "transaction")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Transaction {
 
     @Id
@@ -15,8 +18,9 @@ public class Transaction {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String type; // "INCOME" ili "EXPENSE"
+    private TransactionType type;
 
     @Column(length = 255)
     private String description;
@@ -26,16 +30,18 @@ public class Transaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
+    /** Null za INCOME — prihodi ne idu po kategoriji troška. */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id", nullable = true)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "user"})
     private Category category;
 
-    // Constructors
     public Transaction() {}
 
-    public Transaction(BigDecimal amount, String type, String description, LocalDate date, User user, Category category) {
+    public Transaction(BigDecimal amount, TransactionType type, String description, LocalDate date, User user, Category category) {
         this.amount = amount;
         this.type = type;
         this.description = description;
@@ -44,15 +50,14 @@ public class Transaction {
         this.category = category;
     }
 
-    // Getteri i Setteri
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public TransactionType getType() { return type; }
+    public void setType(TransactionType type) { this.type = type; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

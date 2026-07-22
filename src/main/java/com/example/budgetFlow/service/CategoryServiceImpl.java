@@ -18,22 +18,18 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category createCategory(Category category) {
-
         if (categoryRepository.existsByUserIdAndName(
                 category.getUser().getId(),
                 category.getName())) {
-
             throw new CustomException("Kategorija već postoji.");
         }
-
         return categoryRepository.save(category);
     }
 
     @Override
     public Category getById(Long id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() ->
-                        new CustomException("Kategorija nije pronađena."));
+                .orElseThrow(() -> new CustomException("Kategorija nije pronađena."));
     }
 
     @Override
@@ -46,29 +42,25 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findByUserIdAndTypeId(userId, typeId);
     }
 
+    /** Predefinisane kategorije se ne mijenjaju. */
     @Override
     public Category updateCategory(Long id, Category updatedCategory) {
-
         Category existing = getById(id);
-
+        if (Boolean.TRUE.equals(existing.getIsDefault())) {
+            throw new CustomException("Predefinisane kategorije se ne mogu mijenjati.");
+        }
         existing.setName(updatedCategory.getName());
         existing.setType(updatedCategory.getType());
-
         return categoryRepository.save(existing);
     }
 
+    /** Predefinisane kategorije se ne brišu. */
     @Override
     public void deleteCategory(Long id) {
-
         Category category = getById(id);
-
-        // ne dozvoljavamo brisanje sistemskih kategorija
-        if (category.getIsDefault()) {
-            throw new CustomException(
-                    "Default kategorije se ne mogu obrisati."
-            );
+        if (Boolean.TRUE.equals(category.getIsDefault())) {
+            throw new CustomException("Predefinisane kategorije se ne mogu obrisati.");
         }
-
         categoryRepository.deleteById(id);
     }
 }

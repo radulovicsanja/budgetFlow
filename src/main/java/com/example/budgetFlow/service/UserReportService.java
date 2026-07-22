@@ -1,5 +1,7 @@
 package com.example.budgetFlow.service;
 
+import com.example.budgetFlow.DTO.MonthCompareDTO;
+import com.example.budgetFlow.DTO.MonthTrendDTO;
 import com.example.budgetFlow.DTO.UserReportDTO;
 import com.example.budgetFlow.entity.User_report;
 
@@ -21,7 +23,16 @@ public interface UserReportService {
 
     List<UserReportDTO> getCategoryStatistics(Long userId, String month);
 
+    List<MonthTrendDTO> getTrend(Long userId, int months);
+
+    /** Trend do zadatog mjeseca (YYYY-MM); ako je null — do tekućeg. */
+    List<MonthTrendDTO> getTrend(Long userId, int months, String endMonth);
+
+    MonthCompareDTO compareWithPreviousMonth(Long userId, String month);
+
     User_report generateMonthlyReport(Long userId, String month);
+
+    byte[] generateAndExportMonthlyReport(Long userId, String month);
 
     byte[] exportReportToCSV(Long userId, String month);
 }

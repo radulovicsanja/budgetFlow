@@ -32,11 +32,10 @@ public class User_report {
     @Column(nullable = false)
     private BigDecimal totalSavings;
 
-    // Opcionalno: možemo sačuvati kategorije i njihove iznose kao JSON ili drugu tabelu
-    @Lob
-    private String categoryBreakdown; // npr JSON string {"Essentials": 500, "Optional": 200, "Savings": 300}
+    /** Tekstualni pregled potrošnje po kategorijama. */
+    @Column(columnDefinition = "TEXT")
+    private String categoryBreakdown;
 
-    // Constructors
     public User_report() {}
 
     public User_report(Long userId, LocalDate reportDate, BigDecimal totalIncome, BigDecimal totalExpenses, BigDecimal totalSavings, String categoryBreakdown) {
@@ -48,7 +47,6 @@ public class User_report {
         this.categoryBreakdown = categoryBreakdown;
     }
 
-    // Getteri i Setteri
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

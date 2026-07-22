@@ -9,8 +9,7 @@ import java.util.List;
 
 public interface BudgetService {
 
-
-        Budget getById(Long id); // za BudgetCategoryContgroller
+    Budget getById(Long id);
 
     Budget createBudget(Budget budget);
 
@@ -20,13 +19,15 @@ public interface BudgetService {
 
     List<Budget> getAllUserBudgets(Long userId);
 
-
     Budget updateBudget(Long id, Budget updatedBudget);
 
-    // BudgetCategory specifične metode
     BudgetCategory addOrUpdateCategoryManual(Long budgetId, Long categoryId, Double percentage, Double allocatedAmount);
+
     List<BudgetCategory> applySuggestedBudget(Long budgetId);
 
+    /** Ažurira budžet poslije transakcije (confirmFromUnallocated za prekoračenje). */
+    void updateBudgetAfterTransaction(Transaction transaction, boolean confirmFromUnallocated);
 
-    void updateBudgetAfterTransaction(Transaction savedTransaction);
+    /** Poništi efekat transakcije na budžet (prije delete/update). */
+    void reverseBudgetAfterTransaction(Transaction transaction);
 }

@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface UserReportRepository extends JpaRepository<User_report, Long> {
 
-    // Dohvati sve izvještaje jednog korisnika
     List<User_report> findByUserId(Long userId);
 
-    }
+    void deleteByUserId(Long userId);
+}

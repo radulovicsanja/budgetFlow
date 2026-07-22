@@ -1,6 +1,7 @@
 package com.example.budgetFlow.DTO;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,10 +9,13 @@ import lombok.Setter;
 @Setter
 public class LoginRequest {
 
-    @NotNull
+    /** Obavezno samo pri registraciji. */
     private String username;
-    @NotNull
+
+    @NotBlank(message = "Email je obavezan")
+    @Email(message = "Email mora biti validan")
     private String email;
-    @NotNull
+
+    @NotBlank(message = "Lozinka je obavezna")
     private String password;
 }

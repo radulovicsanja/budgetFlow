@@ -1,16 +1,18 @@
 package com.example.budgetFlow.service;
 
 import com.example.budgetFlow.entity.Transaction;
+import com.example.budgetFlow.entity.TransactionType;
 
 import java.util.List;
 
 public interface TransactionService {
 
-    Transaction save(Transaction transaction);
+    Transaction save(Transaction transaction, boolean confirmFromUnallocated);
 
-    Transaction update(Transaction transaction);
+    /** Update: reverse stare, pa primijeni novu na budžet. */
+    Transaction update(Transaction previous, Transaction updated, boolean confirmFromUnallocated);
 
-    void delete(Long id);
+    void delete(Transaction existing);
 
     Transaction getById(Long id);
 
@@ -18,7 +20,5 @@ public interface TransactionService {
 
     List<Transaction> getByUserIdAndCategoryId(Long userId, Long categoryId);
 
-    List<Transaction> getByUserIdAndType(Long userId, String type);
-
-
+    List<Transaction> getByUserIdAndType(Long userId, TransactionType type);
 }

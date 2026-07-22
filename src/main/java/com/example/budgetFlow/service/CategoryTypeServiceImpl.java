@@ -15,8 +15,6 @@ public class CategoryTypeServiceImpl implements  CategoryTypeService{
         this.categoryTypeRepository = categoryTypeRepository;
     }
 
-
-
     @Override
     public CategoryType save (CategoryType categoryType){
         return categoryTypeRepository.save(categoryType);

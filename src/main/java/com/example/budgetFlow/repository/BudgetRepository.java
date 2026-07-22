@@ -10,12 +10,12 @@ import java.util.Optional;
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
 
-    // Jedan budžet po korisniku za određeni mjesec
+    // jedan budžet po korisniku/mjesecu
     Optional<Budget> findByUserIdAndMonth(Long userId, String month);
 
-    // Svi budžeti korisnika
     List<Budget> findByUserId(Long userId);
 
-    // Provjera da li već postoji budžet za mjesec
     boolean existsByUserIdAndMonth(Long userId, String month);
+
+    void deleteByUserId(Long userId);
 }

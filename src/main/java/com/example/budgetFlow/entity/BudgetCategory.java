@@ -1,5 +1,7 @@
 package com.example.budgetFlow.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import lombok.Builder;
@@ -14,19 +16,21 @@ import java.math.BigDecimal;
 @Builder
 @Table(name = "budget_category",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"budget_id", "category_id"})})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class BudgetCategory {
 
-    // Getters & Setters
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "budget_id", nullable = false)
+    @JsonIgnore
     private Budget budget;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "user"})
     private Category category;
 
     @Column(nullable = false, precision = 5, scale = 2)
@@ -35,7 +39,6 @@ public class BudgetCategory {
     @Column(name = "allocated_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal allocatedAmount;
 
-    // Constructors
     public BudgetCategory() {}
 
     public BudgetCategory(Long id, Budget budget, Category category, BigDecimal percentage, BigDecimal allocatedAmount) {

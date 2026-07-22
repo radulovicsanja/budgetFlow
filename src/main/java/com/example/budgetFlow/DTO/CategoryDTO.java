@@ -15,7 +15,7 @@ public class CategoryDTO {
     @Size(max = 100, message = "Naziv može imati maksimalno 100 karaktera")
     private String name;
 
-    @NotNull(message = "Korisnik je obavezan")
+    /** Ignoriše se — vlasnik se uzima iz JWT-a. */
     private Long userId;
 
     @NotNull(message = "Tip kategorije je obavezan")

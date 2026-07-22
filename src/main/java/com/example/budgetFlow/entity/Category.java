@@ -1,5 +1,7 @@
 package com.example.budgetFlow.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -12,6 +14,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Category {
 
     @Id
@@ -23,26 +26,17 @@ public class Category {
     @Column(nullable = false, length = 100)
     private String name;
 
-    /**
-     * VEZA NA USERA
-     * Jedan user -> više kategorija
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
-    /**
-     * VEZA NA CATEGORY TYPE
-     * ESSENTIAL / OPTIONAL / SAVINGS
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "type_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private CategoryType type;
 
-    /**
-     * Sistemskie kategorije (Hrana, Stanarina...)
-     * ne mogu se obrisati
-     */
+    /** Podrazumijevane kategorije se ne brišu. */
     @Column(name = "is_default")
     private Boolean isDefault = false;
 }

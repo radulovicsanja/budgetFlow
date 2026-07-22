@@ -25,12 +25,11 @@ public class UserReportDTO {
     @Positive
     private BigDecimal totalSavings;
 
-    // za kategorije
     private String categoryName;
     @NotNull
     @Positive
     private BigDecimal amount;
 
-    // JSON breakdown
+    /** JSON pregled potrošnje po kategorijama. */
     private String categoryBreakdown;
 }

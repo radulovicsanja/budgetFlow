@@ -11,14 +11,19 @@ public interface UserService extends UserDetailsService {
 
     User findByEmail(String email);
 
-    // Metod za Spring Security JWT autentifikaciju
     UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
 
-
     User getCurrentUser();
+
+    /** Provjera da je resurs vlasništvo trenutnog korisnika. */
+    void assertOwnership(Long ownerId);
 
     void delete(Long id);
 
     User save(User currentUser);
+
     User getById(Long id);
+
+    /** Ažurira profil (username/email) bez promjene lozinke. */
+    User updateProfile(String username, String email);
 }
