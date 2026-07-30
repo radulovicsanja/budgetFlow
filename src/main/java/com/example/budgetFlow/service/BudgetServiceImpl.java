@@ -272,40 +272,97 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     @Override
-    public BudgetCategory addOrUpdateCategoryManual(Long budgetId, Long categoryId, Double percentage, Double allocatedAmount) {
+    @Transactional
+    public BudgetCategory addOrUpdateCategoryManual(
+            Long budgetId,
+            Long categoryId,
+            Double percentage,
+            Double allocatedAmount
+    ) {
         Budget budget = getById(budgetId);
-        if (budget == null) throw new CustomException("Budžet nije pronađen");
+        if (budget == null) {
+            throw new CustomException("Budžet nije pronađen");
+        }
 
         Category category = categoryService.getById(categoryId);
-        if (category == null) throw new CustomException("Kategorija nije pronađena");
+        if (category == null) {
+            throw new CustomException("Kategorija nije pronađena");
+        }
 
         BigDecimal totalBudget = getTotalAvailable(budget);
         if (totalBudget.compareTo(BigDecimal.ZERO) <= 0) {
             throw new CustomException("Budžet mora imati iznos veći od nule.");
         }
-        BigDecimal perc = percentage != null ? BigDecimal.valueOf(percentage) : BigDecimal.ZERO;
-        BigDecimal amount = allocatedAmount != null ? BigDecimal.valueOf(allocatedAmount) : BigDecimal.ZERO;
 
-        BudgetCategory bc = budgetCategoryRepository.findByBudgetIdAndCategoryId(budgetId, categoryId);
-        if (bc == null) {
-            bc = new BudgetCategory();
-            bc.setBudget(budget);
-            bc.setCategory(category);
-        }
+        BigDecimal enteredPercentage = percentage != null
+                ? BigDecimal.valueOf(percentage)
+                : BigDecimal.ZERO;
 
-        if (perc.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal calcAmount = totalBudget.multiply(perc).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-            bc.setPercentage(perc);
-            bc.setAllocatedAmount(calcAmount);
-        } else if (amount.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal calcPerc = amount.divide(totalBudget, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-            bc.setAllocatedAmount(amount);
-            bc.setPercentage(calcPerc);
-        } else {
+        BigDecimal enteredAmount = allocatedAmount != null
+                ? BigDecimal.valueOf(allocatedAmount)
+                : BigDecimal.ZERO;
+
+        if (enteredPercentage.compareTo(BigDecimal.ZERO) <= 0
+                && enteredAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new CustomException("Morate unijeti ili procenat ili iznos");
         }
 
-        return budgetCategoryService.save(bc);
+        BigDecimal newPercentage;
+        BigDecimal newAllocatedAmount;
+
+        if (enteredPercentage.compareTo(BigDecimal.ZERO) > 0) {
+            newPercentage = enteredPercentage.setScale(2, RoundingMode.HALF_UP);
+            newAllocatedAmount = totalBudget
+                    .multiply(newPercentage)
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        } else {
+            newAllocatedAmount = enteredAmount.setScale(2, RoundingMode.HALF_UP);
+            newPercentage = newAllocatedAmount
+                    .divide(totalBudget, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+
+        if (newPercentage.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new CustomException("Procenat raspodjele mora biti veći od nule.");
+        }
+
+        BudgetCategory existingCategory = budgetCategoryRepository
+                .findByBudgetIdAndCategoryId(budgetId, categoryId);
+
+        BigDecimal otherCategoriesTotal = budgetCategoryRepository.findByBudgetId(budgetId)
+                .stream()
+                .filter(item -> existingCategory == null
+                        || item.getId() == null
+                        || !item.getId().equals(existingCategory.getId()))
+                .map(BudgetCategory::getPercentage)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalPercentageAfterChange = otherCategoriesTotal.add(newPercentage);
+
+        if (totalPercentageAfterChange.compareTo(BigDecimal.valueOf(100)) > 0) {
+            throw new CustomException(
+                    "Ukupan procenat raspodjele ne može biti veći od 100%. "
+                            + "Nakon ove izmjene iznosio bi "
+                            + totalPercentageAfterChange
+                            .setScale(2, RoundingMode.HALF_UP)
+                            .toPlainString()
+                            + "%."
+            );
+        }
+
+        BudgetCategory budgetCategory = existingCategory;
+        if (budgetCategory == null) {
+            budgetCategory = new BudgetCategory();
+            budgetCategory.setBudget(budget);
+            budgetCategory.setCategory(category);
+        }
+
+        budgetCategory.setPercentage(newPercentage);
+        budgetCategory.setAllocatedAmount(newAllocatedAmount);
+
+        return budgetCategoryService.save(budgetCategory);
     }
 
     /** Primjenjuje predloženu raspodjelu 50/30/20. */

@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-/** Promjena lozinke i reset preko tokena. */
+/** Promjena lozinke i resetovanje lozinke preko sigurnosnog tokena. */
 @Service
 @RequiredArgsConstructor
 public class PasswordService {
@@ -28,6 +28,8 @@ public class PasswordService {
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
+    private final EmailService emailService;
+
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Transactional
@@ -39,61 +41,117 @@ public class PasswordService {
         }
 
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
-            throw new CustomException("Nova lozinka mora biti različita od stare.");
+            throw new CustomException(
+                    "Nova lozinka mora biti različita od stare."
+            );
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 
-    /** Reset token se vraća u odgovoru (umjesto emaila). */
     @Transactional
     public Map<String, String> forgotPassword(String email) {
         Map<String, String> response = new LinkedHashMap<>();
-        response.put("message", "Ako nalog sa tim emailom postoji, generisan je reset token.");
 
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        response.put(
+                "message",
+                "Ako nalog sa tim emailom postoji, " +
+                        "poslat je link za resetovanje lozinke."
+        );
+
+        if (email == null || email.isBlank()) {
+            return response;
+        }
+
+        Optional<User> userOpt = userRepository.findByEmail(
+                email.trim().toLowerCase()
+        );
+
         if (userOpt.isEmpty()) {
             return response;
         }
 
         User user = userOpt.get();
-        tokenRepository.deleteByUser(user);
+
+        tokenRepository.deleteAllByUserId(user.getId());
 
         String tokenValue = generateToken();
+
         PasswordResetToken token = PasswordResetToken.builder()
                 .token(tokenValue)
                 .user(user)
-                .expiresAt(LocalDateTime.now().plusHours(TOKEN_HOURS_VALID))
+                .expiresAt(
+                        LocalDateTime.now().plusHours(TOKEN_HOURS_VALID)
+                )
                 .used(false)
                 .build();
 
-        tokenRepository.save(token);
+        tokenRepository.saveAndFlush(token);
 
-        response.put("resetToken", tokenValue);
-        response.put("expiresInHours", String.valueOf(TOKEN_HOURS_VALID));
+        emailService.sendPasswordResetEmail(
+                user.getEmail(),
+                tokenValue
+        );
+
         return response;
     }
 
     @Transactional
-    public void resetPassword(String tokenValue, String newPassword) {
-        PasswordResetToken token = tokenRepository.findByToken(tokenValue)
-                .orElseThrow(() -> new CustomException("Reset token nije validan."));
+    public void resetPassword(
+            String tokenValue,
+            String newPassword
+    ) {
+        if (tokenValue == null || tokenValue.isBlank()) {
+            throw new CustomException(
+                    "Reset token nije validan."
+            );
+        }
+
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new CustomException(
+                    "Nova lozinka nije unesena."
+            );
+        }
+
+        PasswordResetToken token = tokenRepository
+                .findByToken(tokenValue.trim())
+                .orElseThrow(
+                        () -> new CustomException(
+                                "Reset token nije validan."
+                        )
+                );
 
         if (token.isUsed()) {
-            throw new CustomException("Reset token je već iskorišten.");
+            throw new CustomException(
+                    "Reset token je već iskorišten."
+            );
         }
 
         if (token.isExpired()) {
-            throw new CustomException("Reset token je istekao. Zatražite novi.");
+            throw new CustomException(
+                    "Reset token je istekao. Zatražite novi."
+            );
         }
 
         User user = token.getUser();
-        user.setPassword(passwordEncoder.encode(newPassword));
+
+        if (passwordEncoder.matches(
+                newPassword,
+                user.getPassword()
+        )) {
+            throw new CustomException(
+                    "Nova lozinka mora biti različita od stare."
+            );
+        }
+
+        user.setPassword(
+                passwordEncoder.encode(newPassword)
+        );
         userRepository.save(user);
 
         token.setUsed(true);
-        tokenRepository.save(token);
+        tokenRepository.saveAndFlush(token);
     }
 
     private String generateToken() {
